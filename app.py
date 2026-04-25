@@ -4,6 +4,12 @@ import os
 
 app = Flask(__name__)
 
+# ---------- БАЗА ----------
+def get_db():
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+    return conn
+
 def init_db():
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
@@ -16,26 +22,36 @@ def init_db():
     )
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS services (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        price INTEGER
+    )
+    """)
+
     conn.commit()
     conn.close()
 
 init_db()
 
-def get_db():
-    conn = sqlite3.connect("database.db")
-    conn.row_factory = sqlite3.Row
-    return conn
-
+# ---------- РОУТЫ ----------
 @app.route("/")
 def index():
-    return render_template("index.html")
+    conn = get_db()
+    client_count = conn.execute("SELECT COUNT(*) FROM clients").fetchone()[0]
+    service_count = conn.execute("SELECT COUNT(*) FROM services").fetchone()[0]
+    conn.close()
 
+    return render_template("index.html", clients=client_count, services=service_count)
+
+# ----- КЛИЕНТЫ -----
 @app.route("/clients")
 def clients():
     conn = get_db()
-    clients = conn.execute("SELECT * FROM clients").fetchall()
+    data = conn.execute("SELECT * FROM clients").fetchall()
     conn.close()
-    return render_template("clients.html", clients=clients)
+    return render_template("clients.html", clients=data)
 
 @app.route("/add_client", methods=["GET", "POST"])
 def add_client():
@@ -52,8 +68,46 @@ def add_client():
 
     return render_template("add_client.html")
 
+@app.route("/delete_client/<int:id>")
+def delete_client(id):
+    conn = get_db()
+    conn.execute("DELETE FROM clients WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect("/clients")
 
+# ----- УСЛУГИ -----
+@app.route("/services")
+def services():
+    conn = get_db()
+    data = conn.execute("SELECT * FROM services").fetchall()
+    conn.close()
+    return render_template("services.html", services=data)
 
+@app.route("/add_service", methods=["GET", "POST"])
+def add_service():
+    if request.method == "POST":
+        name = request.form["name"]
+        price = request.form["price"]
+
+        conn = get_db()
+        conn.execute("INSERT INTO services (name, price) VALUES (?, ?)", (name, price))
+        conn.commit()
+        conn.close()
+
+        return redirect("/services")
+
+    return render_template("add_service.html")
+
+@app.route("/delete_service/<int:id>")
+def delete_service(id):
+    conn = get_db()
+    conn.execute("DELETE FROM services WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect("/services")
+
+# ---------- ЗАПУСК ----------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
