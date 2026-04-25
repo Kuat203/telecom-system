@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Клиенты</title>
+</head>
+<body>
+    <h1>Список клиентов</h1>
+    <a href="/add_client">Добавить клиента</a>
+
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Имя</th>
+            <th>Телефон</th>
+        </tr>
+
+        {% for c in clients %}
+        <tr>
+            <td>{{ c.id }}</td>
+            <td>{{ c.full_name }}</td>
+            <td>{{ c.phone }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
