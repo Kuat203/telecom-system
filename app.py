@@ -4,6 +4,23 @@ import os
 
 app = Flask(__name__)
 
+def init_db():
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS clients (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        full_name TEXT,
+        phone TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+init_db()
+
 def get_db():
     conn = sqlite3.connect("database.db")
     conn.row_factory = sqlite3.Row
