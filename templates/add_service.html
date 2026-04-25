@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Добавить услугу</h2>
+
+<form method="post">
+    <input class="form-control mb-2" name="name" placeholder="Название услуги">
+    <input class="form-control mb-2" name="price" placeholder="Цена">
+    <button class="btn btn-success">Сохранить</button>
+</form>
+{% endblock %}
