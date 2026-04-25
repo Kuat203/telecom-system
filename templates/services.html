@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Услуги</h2>
+
+<a href="/add_service" class="btn btn-success mb-3">Добавить</a>
+
+<table class="table table-dark table-striped">
+    <tr>
+        <th>ID</th>
+        <th>Название</th>
+        <th>Цена</th>
+        <th>Действия</th>
+    </tr>
+
+    {% for s in services %}
+    <tr>
+        <td>{{ s.id }}</td>
+        <td>{{ s.name }}</td>
+        <td>{{ s.price }}</td>
+        <td>
+            <a href="/delete_service/{{ s.id }}" class="btn btn-danger btn-sm">Удалить</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
