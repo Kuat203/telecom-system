@@ -1,15 +1,11 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Добавить клиента</title>
-</head>
-<body>
-    <h1>Добавить клиента</h1>
+{% extends "base.html" %}
 
-    <form method="post">
-        Имя: <input type="text" name="name"><br>
-        Телефон: <input type="text" name="phone"><br>
-        <button type="submit">Сохранить</button>
-    </form>
-</body>
-</html>
+{% block content %}
+<h2>Добавить клиента</h2>
+
+<form method="post">
+    <input class="form-control mb-2" name="name" placeholder="Имя">
+    <input class="form-control mb-2" name="phone" placeholder="Телефон">
+    <button class="btn btn-success">Сохранить</button>
+</form>
+{% endblock %}
