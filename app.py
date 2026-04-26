@@ -78,6 +78,20 @@ def add_client():
 
     return render_template("add_client.html")
 
+@app.route("/toggle_sub/<int:id>")
+def toggle_sub(id):
+    conn = get_db()
+
+    sub = conn.execute("SELECT status FROM subscriptions WHERE id=?", (id,)).fetchone()
+
+    new_status = "Отключена" if sub["status"] == "Активна" else "Активна"
+
+    conn.execute("UPDATE subscriptions SET status=? WHERE id=?", (new_status, id))
+    conn.commit()
+    conn.close()
+
+    return redirect("/subscriptions")
+
 @app.route("/stats")
 def stats():
     conn = get_db()
