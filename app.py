@@ -48,8 +48,18 @@ def index():
 # ----- КЛИЕНТЫ -----
 @app.route("/clients")
 def clients():
+    search = request.args.get("search")
+
     conn = get_db()
-    data = conn.execute("SELECT * FROM clients").fetchall()
+
+    if search:
+        data = conn.execute(
+            "SELECT * FROM clients WHERE full_name LIKE ?",
+            ("%" + search + "%",)
+        ).fetchall()
+    else:
+        data = conn.execute("SELECT * FROM clients").fetchall()
+
     conn.close()
     return render_template("clients.html", clients=data)
 
