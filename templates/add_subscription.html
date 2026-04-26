@@ -1,25 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Новое подключение</h2>
+<h2>Подключить клиента</h2>
 
-<form method="post">
+<form method="post" class="mt-3">
 
-<select name="client_id" class="form-select mb-2">
-    {% for c in clients %}
-    <option value="{{ c.id }}">{{ c.full_name }}</option>
-    {% endfor %}
+<select name="client_id" class="form-control mb-2">
+{% for c in clients %}
+<option value="{{ c.id }}">{{ c.full_name }}</option>
+{% endfor %}
 </select>
 
-<select name="service_id" class="form-select mb-2">
-    {% for s in services %}
-    <option value="{{ s.id }}">{{ s.name }}</option>
-    {% endfor %}
+<select name="tariff_id" class="form-control mb-2">
+{% for t in tariffs %}
+<option value="{{ t.id }}">{{ t.name }} — {{ t.price }} ₸</option>
+{% endfor %}
 </select>
 
-<input type="date" name="date" class="form-control mb-2">
-
-<button class="btn btn-success">Подключить</button>
+<button class="btn-pro">Подключить</button>
 
 </form>
 
