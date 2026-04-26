@@ -8,21 +8,29 @@
         body {
             background: #0f172a;
             color: #e2e8f0;
+            font-family: system-ui;
         }
 
         .sidebar {
-            height: 100vh;
-            width: 250px;
             position: fixed;
+            width: 240px;
+            height: 100vh;
             background: #020617;
-            padding-top: 20px;
+            padding: 20px;
+        }
+
+        .sidebar h4 {
+            margin-bottom: 30px;
         }
 
         .sidebar a {
             display: block;
-            padding: 12px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
             color: #94a3b8;
             text-decoration: none;
+            transition: 0.2s;
         }
 
         .sidebar a:hover {
@@ -32,11 +40,50 @@
 
         .content {
             margin-left: 260px;
-            padding: 20px;
+            padding: 30px;
         }
 
-        .card {
-            border-radius: 15px;
+        .card-custom {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .table-custom {
+            background: #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table-custom th {
+            background: #020617;
+            color: #94a3b8;
+        }
+
+        .table-custom td {
+            vertical-align: middle;
+        }
+
+        .table-custom tr:hover {
+            background: #334155;
+        }
+
+        .btn-modern {
+            border-radius: 8px;
+            padding: 6px 12px;
+        }
+
+        .status-active {
+            background: #16a34a;
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+
+        .status-off {
+            background: #dc2626;
+            padding: 5px 10px;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -44,7 +91,8 @@
 <body>
 
 <div class="sidebar">
-    <h4 class="text-center text-light">Telecom</h4>
+    <h4 class="text-light">Telecom</h4>
+
     <a href="/">Панель</a>
     <a href="/clients">Клиенты</a>
     <a href="/services">Услуги</a>
