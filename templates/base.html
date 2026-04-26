@@ -2,88 +2,141 @@
 <html>
 <head>
     <title>Telecom System</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
+        :root {
+            --bg-main: #0b1220;
+            --bg-soft: #121a2b;
+            --bg-card: #182235;
+            --border: #1f2a40;
+            --text-main: #e6edf7;
+            --text-muted: #8b98b3;
+            --accent: #3b82f6;
+        }
+
         body {
-            background: #0f172a;
-            color: #e2e8f0;
+            margin: 0;
+            background: linear-gradient(180deg, #0b1220, #0f172a);
+            color: var(--text-main);
             font-family: system-ui;
         }
 
+        /* SIDEBAR */
         .sidebar {
             position: fixed;
             width: 240px;
             height: 100vh;
-            background: #020617;
+            background: rgba(10,15,30,0.9);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border);
             padding: 20px;
         }
 
         .sidebar h4 {
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            font-weight: 600;
         }
 
         .sidebar a {
             display: block;
-            padding: 10px;
-            margin-bottom: 8px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
             border-radius: 8px;
-            color: #94a3b8;
+            color: var(--text-muted);
             text-decoration: none;
             transition: 0.2s;
         }
 
         .sidebar a:hover {
-            background: #1e293b;
+            background: var(--bg-soft);
             color: white;
         }
 
+        /* CONTENT */
         .content {
             margin-left: 260px;
-            padding: 30px;
+            padding: 40px;
+            max-width: 1400px;
         }
 
-        .card-custom {
-            background: #1e293b;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        /* CARD */
+        .card-pro {
+            background: linear-gradient(145deg, #182235, #141c2c);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            transition: 0.2s;
         }
 
-        .table-custom {
-            background: #1e293b;
-            border-radius: 12px;
+        .card-pro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        /* TABLE */
+        .table-pro {
+            width: 100%;
+            border-collapse: collapse;
             overflow: hidden;
+            border-radius: 12px;
+            background: var(--bg-card);
         }
 
-        .table-custom th {
-            background: #020617;
-            color: #94a3b8;
+        .table-pro th {
+            text-align: left;
+            padding: 14px;
+            background: #0f172a;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-bottom: 1px solid var(--border);
         }
 
-        .table-custom td {
-            vertical-align: middle;
+        .table-pro td {
+            padding: 14px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .table-custom tr:hover {
-            background: #334155;
+        .table-pro tr:hover {
+            background: #1c2840;
         }
 
-        .btn-modern {
-            border-radius: 8px;
+        /* BUTTON */
+        .btn-pro {
+            background: var(--accent);
+            border: none;
             padding: 6px 12px;
+            border-radius: 8px;
+            color: white;
+            transition: 0.2s;
         }
 
-        .status-active {
+        .btn-pro:hover {
+            opacity: 0.85;
+        }
+
+        .btn-danger-pro {
+            background: #ef4444;
+        }
+
+        .btn-warning-pro {
+            background: #f59e0b;
+        }
+
+        /* STATUS */
+        .status {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .active {
             background: #16a34a;
-            padding: 5px 10px;
-            border-radius: 8px;
         }
 
-        .status-off {
+        .off {
             background: #dc2626;
-            padding: 5px 10px;
-            border-radius: 8px;
         }
     </style>
 </head>
@@ -91,7 +144,7 @@
 <body>
 
 <div class="sidebar">
-    <h4 class="text-light">Telecom</h4>
+    <h4>Telecom</h4>
 
     <a href="/">Панель</a>
     <a href="/clients">Клиенты</a>
