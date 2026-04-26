@@ -4,20 +4,24 @@ import os
 
 app = Flask(__name__)
 
+DB_PATH = "database.db"
+
+
+# ---------------- БД ----------------
 def get_db():
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
-    conn = sqlite3.connect("database.db")
+    conn = get_db()
     c = conn.cursor()
 
     c.execute("""
     CREATE TABLE IF NOT EXISTS clients (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        full_name TEXT,
+        full_name TEXT NOT NULL,
         phone TEXT
     )
     """)
@@ -25,11 +29,11 @@ def init_db():
     c.execute("""
     CREATE TABLE IF NOT EXISTS tariffs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
+        name TEXT NOT NULL,
         type TEXT,
         speed INTEGER,
         channels INTEGER,
-        price INTEGER
+        price INTEGER NOT NULL
     )
     """)
 
@@ -39,8 +43,10 @@ def init_db():
         client_id INTEGER,
         tariff_id INTEGER,
         start_date TEXT,
-        status TEXT,
-        balance INTEGER DEFAULT 0
+        status TEXT DEFAULT 'Активна',
+        balance INTEGER DEFAULT 0,
+        FOREIGN KEY (client_id) REFERENCES clients(id),
+        FOREIGN KEY (tariff_id) REFERENCES tariffs(id)
     )
     """)
 
@@ -49,7 +55,8 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         client_id INTEGER,
         amount INTEGER,
-        date TEXT
+        date TEXT,
+        FOREIGN KEY (client_id) REFERENCES clients(id)
     )
     """)
 
@@ -57,8 +64,9 @@ def init_db():
     conn.close()
 
 
-
-init_db()
+# ⚠️ создаем БД только если нет
+if not os.path.exists(DB_PATH):
+    init_db()
 
 
 # ---------------- ГЛАВНАЯ ----------------
@@ -71,7 +79,6 @@ def index():
     income = db.execute("SELECT IFNULL(SUM(amount),0) FROM payments").fetchone()[0]
 
     db.close()
-
     return render_template("index.html", clients=clients, subs=subs, income=income)
 
 
@@ -87,11 +94,20 @@ def clients():
 @app.route("/add_client", methods=["GET", "POST"])
 def add_client():
     if request.method == "POST":
+        name = request.form.get("name")
+        phone = request.form.get("phone")
+
+        if not name:
+            return "Имя обязательно"
+
         db = get_db()
-        db.execute("INSERT INTO clients (full_name, phone) VALUES (?, ?)",
-                   (request.form["name"], request.form["phone"]))
+        db.execute(
+            "INSERT INTO clients (full_name, phone) VALUES (?, ?)",
+            (name, phone)
+        )
         db.commit()
         db.close()
+
         return redirect("/clients")
 
     return render_template("add_client.html")
@@ -114,11 +130,11 @@ def add_tariff():
         INSERT INTO tariffs (name, type, speed, channels, price)
         VALUES (?, ?, ?, ?, ?)
         """, (
-            request.form["name"],
-            request.form["type"],
-            request.form["speed"],
-            request.form["channels"],
-            request.form["price"]
+            request.form.get("name"),
+            request.form.get("type"),
+            request.form.get("speed"),
+            request.form.get("channels"),
+            request.form.get("price")
         ))
         db.commit()
         db.close()
@@ -149,13 +165,12 @@ def add_subscription():
 
     if request.method == "POST":
         db.execute("""
-        INSERT INTO subscriptions (client_id, tariff_id, start_date, status, balance)
-        VALUES (?, ?, date('now'), 'Активна', 0)
+        INSERT INTO subscriptions (client_id, tariff_id, start_date)
+        VALUES (?, ?, date('now'))
         """, (
-            request.form["client_id"],
-            request.form["tariff_id"]
+            request.form.get("client_id"),
+            request.form.get("tariff_id")
         ))
-
         db.commit()
         db.close()
         return redirect("/subscriptions")
@@ -166,6 +181,7 @@ def add_subscription():
 
     return render_template("add_subscription.html", clients=clients, tariffs=tariffs)
 
+
 @app.route("/activate/<int:id>")
 def activate(id):
     db = get_db()
@@ -173,6 +189,7 @@ def activate(id):
     db.commit()
     db.close()
     return redirect("/subscriptions")
+
 
 @app.route("/deactivate/<int:id>")
 def deactivate(id):
@@ -191,8 +208,15 @@ def charge():
     subs = db.execute("SELECT id, tariff_id FROM subscriptions").fetchall()
 
     for s in subs:
-        price = db.execute("SELECT price FROM tariffs WHERE id=?", (s["tariff_id"],)).fetchone()[0]
-        db.execute("UPDATE subscriptions SET balance = balance - ? WHERE id=?", (price, s["id"]))
+        price = db.execute(
+            "SELECT price FROM tariffs WHERE id=?",
+            (s["tariff_id"],)
+        ).fetchone()[0]
+
+        db.execute(
+            "UPDATE subscriptions SET balance = balance - ? WHERE id=?",
+            (price, s["id"])
+        )
 
     db.commit()
     db.close()
@@ -204,11 +228,13 @@ def charge():
 @app.route("/payments")
 def payments():
     db = get_db()
+
     data = db.execute("""
     SELECT p.id, c.full_name, p.amount, p.date
     FROM payments p
     JOIN clients c ON c.id = p.client_id
     """).fetchall()
+
     db.close()
     return render_template("payments.html", payments=data)
 
@@ -218,14 +244,23 @@ def add_payment():
     db = get_db()
 
     if request.method == "POST":
-        client_id = request.form["client_id"]
-        amount = int(request.form["amount"])
+        client_id = request.form.get("client_id")
+        amount = request.form.get("amount")
 
-        db.execute("INSERT INTO payments (client_id, amount, date) VALUES (?, ?, date('now'))",
-                   (client_id, amount))
+        if not amount:
+            return "Введите сумму"
 
-        db.execute("UPDATE subscriptions SET balance = balance + ? WHERE client_id=?",
-                   (amount, client_id))
+        amount = int(amount)
+
+        db.execute(
+            "INSERT INTO payments (client_id, amount, date) VALUES (?, ?, date('now'))",
+            (client_id, amount)
+        )
+
+        db.execute(
+            "UPDATE subscriptions SET balance = balance + ? WHERE client_id=?",
+            (amount, client_id)
+        )
 
         db.commit()
         db.close()
