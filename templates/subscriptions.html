@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="mb-3">Подключения</h2>
+<h2 class="mb-4">Подключения</h2>
 
-<a href="/add_subscription" class="btn btn-primary mb-3 btn-modern">+ Подключить</a>
+<a href="/add_subscription" class="btn-pro mb-3">+ Подключить</a>
 
-<div class="table-custom">
-<table class="table mb-0 text-light">
+<table class="table-pro">
 
 <tr>
     <th>ID</th>
@@ -26,19 +25,18 @@
 
     <td>
         {% if s.status == "Активна" %}
-            <span class="status-active">Активна</span>
+            <span class="status active">Активна</span>
         {% else %}
-            <span class="status-off">Отключена</span>
+            <span class="status off">Отключена</span>
         {% endif %}
     </td>
 
     <td>
-        <a href="/toggle_sub/{{ s.id }}" class="btn btn-warning btn-sm btn-modern">↻</a>
+        <a href="/toggle_sub/{{ s.id }}" class="btn-warning-pro btn-pro">↻</a>
     </td>
 </tr>
 {% endfor %}
 
 </table>
-</div>
 
 {% endblock %}
