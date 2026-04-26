@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Добавить платеж</h2>
+
+<form method="post">
+<select name="client_id" class="form-select mb-2">
+{% for c in clients %}
+<option value="{{ c.id }}">{{ c.full_name }}</option>
+{% endfor %}
+</select>
+
+<input name="amount" class="form-control mb-2" placeholder="Сумма">
+<input type="date" name="date" class="form-control mb-2">
+
+<button class="btn btn-success">Сохранить</button>
+</form>
+
+{% endblock %}
