@@ -57,9 +57,6 @@ def init_db():
     conn.close()
 
 
-# ❗ ОДИН РАЗ оставить, потом удалить
-if os.path.exists("database.db"):
-    os.remove("database.db")
 
 init_db()
 
