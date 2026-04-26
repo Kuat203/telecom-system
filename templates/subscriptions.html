@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Подключения</h2>
+
+<a href="/add_subscription" class="btn btn-primary mb-3">Новое подключение</a>
+
+<table class="table table-dark table-hover">
+    <tr>
+        <th>ID</th>
+        <th>Клиент</th>
+        <th>Услуга</th>
+        <th>Дата</th>
+        <th>Статус</th>
+    </tr>
+
+    {% for s in subs %}
+    <tr>
+        <td>{{ s.id }}</td>
+        <td>{{ s.full_name }}</td>
+        <td>{{ s.name }}</td>
+        <td>{{ s.start_date }}</td>
+        <td><span class="badge bg-success">{{ s.status }}</span></td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}
