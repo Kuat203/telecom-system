@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Статистика доходов</h2>
+
+<canvas id="chart"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+new Chart(document.getElementById("chart"), {
+    type: 'line',
+    data: {
+        labels: {{ dates | safe }},
+        datasets: [{
+            label: 'Доход',
+            data: {{ totals | safe }},
+            borderWidth: 2
+        }]
+    }
+});
+</script>
+
+{% endblock %}
