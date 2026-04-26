@@ -3,23 +3,26 @@
 
 <h2 class="mb-4">Подключения</h2>
 
-<a href="/add_subscription" class="btn-pro mb-3">+ Подключить</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="/add_subscription" class="btn-pro">+ Подключить</a>
 
-<div class="d-flex gap-2 mb-3">
-    <a href="/subscriptions" class="btn-pro">Все</a>
-    <a href="/subscriptions?status=Активна" class="btn-pro">Активные</a>
-    <a href="/subscriptions?status=Отключена" class="btn-pro">Отключённые</a>
+    <div class="d-flex gap-2">
+        <a href="/subscriptions" class="btn-pro">Все</a>
+        <a href="/subscriptions?status=Активна" class="btn-pro">Активные</a>
+        <a href="/subscriptions?status=Отключена" class="btn-pro">Отключённые</a>
+    </div>
 
-    <a href="/charge" class="btn-warning-pro btn-pro ms-auto">Начислить месяц</a>
+    <a href="/charge" class="btn-warning-pro btn-pro">Начислить</a>
 </div>
 
 <table class="table-pro">
+
 <tr>
     <th>Клиент</th>
     <th>Тариф</th>
     <th>Баланс</th>
     <th>Статус</th>
-    <th></th>
+    <th>Действия</th>
 </tr>
 
 {% for s in subs %}
@@ -27,14 +30,20 @@
     <td>{{ s.full_name }}</td>
     <td>{{ s.name }}</td>
 
+    <!-- БАЛАНС -->
     <td>
         {% if s.balance < 0 %}
-            <span style="color:#ef4444">{{ s.balance }} ₸</span>
+            <span style="color:#ef4444; font-weight:600;">
+                {{ s.balance }} ₸
+            </span>
         {% else %}
-            <span style="color:#22c55e">{{ s.balance }} ₸</span>
+            <span style="color:#22c55e;">
+                {{ s.balance }} ₸
+            </span>
         {% endif %}
     </td>
 
+    <!-- СТАТУС -->
     <td>
         {% if s.status == "Активна" %}
             <span class="status active">Активна</span>
@@ -43,13 +52,22 @@
         {% endif %}
     </td>
 
+    <!-- ДЕЙСТВИЯ -->
     <td>
-        {% if s.status == "Отключена" %}
-            <a href="/activate/{{ s.id }}" class="btn-pro">Включить</a>
+        {% if s.status == "Активна" %}
+            <a href="/deactivate/{{ s.id }}" class="btn-danger-pro btn-pro">
+                Отключить
+            </a>
+        {% else %}
+            <a href="/activate/{{ s.id }}" class="btn-pro">
+                Включить
+            </a>
         {% endif %}
     </td>
+
 </tr>
 {% endfor %}
+
 </table>
 
 {% endblock %}
