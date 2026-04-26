@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Добавить тариф</h2>
+
+<form method="post" class="mt-3">
+
+<input name="name" class="form-control mb-2" placeholder="Название">
+
+<select name="type" class="form-control mb-2">
+    <option>Интернет</option>
+    <option>ТВ</option>
+</select>
+
+<input name="speed" class="form-control mb-2" placeholder="Скорость (Мбит)">
+<input name="channels" class="form-control mb-2" placeholder="Каналы">
+<input name="price" class="form-control mb-2" placeholder="Цена">
+
+<button class="btn-pro">Сохранить</button>
+
+</form>
+
+{% endblock %}
