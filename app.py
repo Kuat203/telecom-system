@@ -78,6 +78,21 @@ def add_client():
 
     return render_template("add_client.html")
 
+@app.route("/stats")
+def stats():
+    conn = get_db()
+    data = conn.execute("""
+    SELECT date, SUM(amount) as total
+    FROM payments
+    GROUP BY date
+    """).fetchall()
+    conn.close()
+
+    dates = [row["date"] for row in data]
+    totals = [row["total"] for row in data]
+
+    return render_template("stats.html", dates=dates, totals=totals)
+
 @app.route("/delete_client/<int:id>")
 def delete_client(id):
     conn = get_db()
