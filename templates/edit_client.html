@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Редактировать клиента</h2>
+
+<form method="post">
+    <input class="form-control mb-2" name="name" value="{{ client.full_name }}">
+    <input class="form-control mb-2" name="phone" value="{{ client.phone }}">
+    <button class="btn btn-warning">Сохранить</button>
+</form>
+
+{% endblock %}
