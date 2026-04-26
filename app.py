@@ -252,9 +252,11 @@ def add_payment():
 
         amount = int(amount)
 
+        date = request.form.get("date")
+
         db.execute(
-            "INSERT INTO payments (client_id, amount, date) VALUES (?, ?, date('now'))",
-            (client_id, amount)
+            "INSERT INTO payments (client_id, amount, date) VALUES (?, ?, ?)",
+            (client_id, amount, date)
         )
 
         db.execute(
