@@ -151,6 +151,41 @@ def edit_client(id):
     return render_template("edit_client.html", client=client)
 
 
+@app.route("/payments")
+def payments():
+    conn = get_db()
+    data = conn.execute("""
+    SELECT payments.id, clients.full_name, amount, date
+    FROM payments
+    JOIN clients ON clients.id = payments.client_id
+    """).fetchall()
+    conn.close()
+    return render_template("payments.html", payments=data)
+
+
+@app.route("/add_payment", methods=["GET", "POST"])
+def add_payment():
+    conn = get_db()
+
+    if request.method == "POST":
+        client_id = request.form["client_id"]
+        amount = request.form["amount"]
+        date = request.form["date"]
+
+        conn.execute(
+            "INSERT INTO payments (client_id, amount, date) VALUES (?, ?, ?)",
+            (client_id, amount, date)
+        )
+        conn.commit()
+        conn.close()
+        return redirect("/payments")
+
+    clients = conn.execute("SELECT * FROM clients").fetchall()
+    conn.close()
+
+    return render_template("add_payment.html", clients=clients)
+
+
 @app.route("/add_subscription", methods=["GET", "POST"])
 def add_subscription():
     conn = get_db()
