@@ -1,9 +1,6 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
 import os
-if os.path.exists("database.db"):
-    os.remove("database.db")
-
 
 app = Flask(__name__)
 
@@ -13,10 +10,12 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def init_db():
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
 
+    # --- КЛИЕНТЫ ---
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS clients (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,6 +24,7 @@ def init_db():
     )
     """)
 
+    # --- УСЛУГИ ---
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS services (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,12 +33,39 @@ def init_db():
     )
     """)
 
+    # --- ПОДКЛЮЧЕНИЯ ---
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS subscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        client_id INTEGER,
+        service_id INTEGER,
+        start_date TEXT,
+        status TEXT
+    )
+    """)
+
+    # --- ПЛАТЕЖИ ---
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS payments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        client_id INTEGER,
+        amount INTEGER,
+        date TEXT
+    )
+    """)
+
     conn.commit()
     conn.close()
 
+
+# ❗ ВАЖНО: временно очищаем базу (один раз)
+if os.path.exists("database.db"):
+    os.remove("database.db")
+
 init_db()
 
-# ---------- РОУТЫ ----------
+
+# ---------- ГЛАВНАЯ ----------
 @app.route("/")
 def index():
     conn = get_db()
@@ -48,7 +75,8 @@ def index():
 
     return render_template("index.html", clients=client_count, services=service_count)
 
-# ----- КЛИЕНТЫ -----
+
+# ---------- КЛИЕНТЫ ----------
 @app.route("/clients")
 def clients():
     search = request.args.get("search")
@@ -66,6 +94,7 @@ def clients():
     conn.close()
     return render_template("clients.html", clients=data)
 
+
 @app.route("/add_client", methods=["GET", "POST"])
 def add_client():
     if request.method == "POST":
@@ -81,85 +110,6 @@ def add_client():
 
     return render_template("add_client.html")
 
-@app.route("/toggle_sub/<int:id>")
-def toggle_sub(id):
-    conn = get_db()
-
-    sub = conn.execute("SELECT status FROM subscriptions WHERE id=?", (id,)).fetchone()
-
-    new_status = "Отключена" if sub["status"] == "Активна" else "Активна"
-
-    conn.execute("UPDATE subscriptions SET status=? WHERE id=?", (new_status, id))
-    conn.commit()
-    conn.close()
-
-    return redirect("/subscriptions")
-
-@app.route("/stats")
-def stats():
-    conn = get_db()
-    data = conn.execute("""
-    SELECT date, SUM(amount) as total
-    FROM payments
-    GROUP BY date
-    """).fetchall()
-    conn.close()
-
-    dates = [row["date"] for row in data]
-    totals = [row["total"] for row in data]
-
-    return render_template("stats.html", dates=dates, totals=totals)
-
-@app.route("/delete_client/<int:id>")
-def delete_client(id):
-    conn = get_db()
-    conn.execute("DELETE FROM clients WHERE id=?", (id,))
-    conn.commit()
-    conn.close()
-    return redirect("/clients")
-
-# ----- УСЛУГИ -----
-@app.route("/services")
-def services():
-    conn = get_db()
-    data = conn.execute("SELECT * FROM services").fetchall()
-    conn.close()
-    return render_template("services.html", services=data)
-
-@app.route("/add_service", methods=["GET", "POST"])
-def add_service():
-    if request.method == "POST":
-        name = request.form["name"]
-        price = request.form["price"]
-
-        conn = get_db()
-        conn.execute("INSERT INTO services (name, price) VALUES (?, ?)", (name, price))
-        conn.commit()
-        conn.close()
-
-        return redirect("/services")
-
-    return render_template("add_service.html")
-
-@app.route("/delete_service/<int:id>")
-def delete_service(id):
-    conn = get_db()
-    conn.execute("DELETE FROM services WHERE id=?", (id,))
-    conn.commit()
-    conn.close()
-    return redirect("/services")
-
-@app.route("/subscriptions")
-def subscriptions():
-    conn = get_db()
-    data = conn.execute("""
-    SELECT subscriptions.id, clients.full_name, services.name, start_date, status
-    FROM subscriptions
-    JOIN clients ON clients.id = subscriptions.client_id
-    JOIN services ON services.id = subscriptions.service_id
-    """).fetchall()
-    conn.close()
-    return render_template("subscriptions.html", subs=data)
 
 @app.route("/edit_client/<int:id>", methods=["GET", "POST"])
 def edit_client(id):
@@ -183,6 +133,102 @@ def edit_client(id):
     return render_template("edit_client.html", client=client)
 
 
+@app.route("/delete_client/<int:id>")
+def delete_client(id):
+    conn = get_db()
+    conn.execute("DELETE FROM clients WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect("/clients")
+
+
+# ---------- УСЛУГИ ----------
+@app.route("/services")
+def services():
+    conn = get_db()
+    data = conn.execute("SELECT * FROM services").fetchall()
+    conn.close()
+    return render_template("services.html", services=data)
+
+
+@app.route("/add_service", methods=["GET", "POST"])
+def add_service():
+    if request.method == "POST":
+        name = request.form["name"]
+        price = request.form["price"]
+
+        conn = get_db()
+        conn.execute("INSERT INTO services (name, price) VALUES (?, ?)", (name, price))
+        conn.commit()
+        conn.close()
+
+        return redirect("/services")
+
+    return render_template("add_service.html")
+
+
+@app.route("/delete_service/<int:id>")
+def delete_service(id):
+    conn = get_db()
+    conn.execute("DELETE FROM services WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect("/services")
+
+
+# ---------- ПОДКЛЮЧЕНИЯ ----------
+@app.route("/subscriptions")
+def subscriptions():
+    conn = get_db()
+    data = conn.execute("""
+    SELECT subscriptions.id, clients.full_name, services.name, start_date, status
+    FROM subscriptions
+    JOIN clients ON clients.id = subscriptions.client_id
+    JOIN services ON services.id = subscriptions.service_id
+    """).fetchall()
+    conn.close()
+    return render_template("subscriptions.html", subs=data)
+
+
+@app.route("/add_subscription", methods=["GET", "POST"])
+def add_subscription():
+    conn = get_db()
+
+    if request.method == "POST":
+        client_id = request.form["client_id"]
+        service_id = request.form["service_id"]
+        date = request.form["date"]
+
+        conn.execute(
+            "INSERT INTO subscriptions (client_id, service_id, start_date, status) VALUES (?, ?, ?, 'Активна')",
+            (client_id, service_id, date)
+        )
+        conn.commit()
+        conn.close()
+        return redirect("/subscriptions")
+
+    clients = conn.execute("SELECT * FROM clients").fetchall()
+    services = conn.execute("SELECT * FROM services").fetchall()
+    conn.close()
+
+    return render_template("add_subscription.html", clients=clients, services=services)
+
+
+@app.route("/toggle_sub/<int:id>")
+def toggle_sub(id):
+    conn = get_db()
+
+    sub = conn.execute("SELECT status FROM subscriptions WHERE id=?", (id,)).fetchone()
+    new_status = "Отключена" if sub["status"] == "Активна" else "Активна"
+
+    conn.execute("UPDATE subscriptions SET status=? WHERE id=?", (new_status, id))
+    conn.commit()
+    conn.close()
+
+    return redirect("/subscriptions")
+
+
+# ---------- ПЛАТЕЖИ ----------
 @app.route("/payments")
 def payments():
     conn = get_db()
@@ -218,28 +264,22 @@ def add_payment():
     return render_template("add_payment.html", clients=clients)
 
 
-@app.route("/add_subscription", methods=["GET", "POST"])
-def add_subscription():
+# ---------- СТАТИСТИКА ----------
+@app.route("/stats")
+def stats():
     conn = get_db()
-
-    if request.method == "POST":
-        client_id = request.form["client_id"]
-        service_id = request.form["service_id"]
-        date = request.form["date"]
-
-        conn.execute(
-            "INSERT INTO subscriptions (client_id, service_id, start_date, status) VALUES (?, ?, ?, 'Активна')",
-            (client_id, service_id, date)
-        )
-        conn.commit()
-        conn.close()
-        return redirect("/subscriptions")
-
-    clients = conn.execute("SELECT * FROM clients").fetchall()
-    services = conn.execute("SELECT * FROM services").fetchall()
+    data = conn.execute("""
+    SELECT date, SUM(amount) as total
+    FROM payments
+    GROUP BY date
+    """).fetchall()
     conn.close()
 
-    return render_template("add_subscription.html", clients=clients, services=services)
+    dates = [row["date"] for row in data]
+    totals = [row["total"] for row in data]
+
+    return render_template("stats.html", dates=dates, totals=totals)
+
 
 # ---------- ЗАПУСК ----------
 if __name__ == "__main__":
