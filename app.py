@@ -1,12 +1,8 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
 import os
-from datetime import datetime
 
 app = Flask(__name__)
-
-DEBT_LIMIT = -5000  # порог отключения
-
 
 def get_db():
     conn = sqlite3.connect("database.db")
@@ -61,7 +57,7 @@ def init_db():
     conn.close()
 
 
-# пересоздание базы (разово)
+# ❗ ОДИН РАЗ оставить, потом удалить
 if os.path.exists("database.db"):
     os.remove("database.db")
 
@@ -77,11 +73,9 @@ def index():
     subs = db.execute("SELECT COUNT(*) FROM subscriptions").fetchone()[0]
     income = db.execute("SELECT IFNULL(SUM(amount),0) FROM payments").fetchone()[0]
 
-    debt = db.execute("SELECT COUNT(*) FROM subscriptions WHERE balance < 0").fetchone()[0]
-
     db.close()
 
-    return render_template("index.html", clients=clients, subs=subs, income=income, debt=debt)
+    return render_template("index.html", clients=clients, subs=subs, income=income)
 
 
 # ---------------- КЛИЕНТЫ ----------------
@@ -93,14 +87,17 @@ def clients():
     return render_template("clients.html", clients=data)
 
 
-@app.route("/add_client", methods=["POST"])
+@app.route("/add_client", methods=["GET", "POST"])
 def add_client():
-    db = get_db()
-    db.execute("INSERT INTO clients (full_name, phone) VALUES (?, ?)",
-               (request.form["name"], request.form["phone"]))
-    db.commit()
-    db.close()
-    return redirect("/clients")
+    if request.method == "POST":
+        db = get_db()
+        db.execute("INSERT INTO clients (full_name, phone) VALUES (?, ?)",
+                   (request.form["name"], request.form["phone"]))
+        db.commit()
+        db.close()
+        return redirect("/clients")
+
+    return render_template("add_client.html")
 
 
 # ---------------- ТАРИФЫ ----------------
@@ -112,43 +109,38 @@ def tariffs():
     return render_template("tariffs.html", tariffs=data)
 
 
-@app.route("/add_tariff", methods=["POST"])
+@app.route("/add_tariff", methods=["GET", "POST"])
 def add_tariff():
-    db = get_db()
-    db.execute("""
-    INSERT INTO tariffs (name, type, speed, channels, price)
-    VALUES (?, ?, ?, ?, ?)
-    """, (
-        request.form["name"],
-        request.form["type"],
-        request.form["speed"],
-        request.form["channels"],
-        request.form["price"]
-    ))
-    db.commit()
-    db.close()
-    return redirect("/tariffs")
+    if request.method == "POST":
+        db = get_db()
+        db.execute("""
+        INSERT INTO tariffs (name, type, speed, channels, price)
+        VALUES (?, ?, ?, ?, ?)
+        """, (
+            request.form["name"],
+            request.form["type"],
+            request.form["speed"],
+            request.form["channels"],
+            request.form["price"]
+        ))
+        db.commit()
+        db.close()
+        return redirect("/tariffs")
+
+    return render_template("add_tariff.html")
 
 
 # ---------------- ПОДКЛЮЧЕНИЯ ----------------
 @app.route("/subscriptions")
 def subscriptions():
-    status_filter = request.args.get("status")
-
     db = get_db()
 
-    query = """
+    data = db.execute("""
     SELECT s.id, c.full_name, t.name, t.price, s.balance, s.status
     FROM subscriptions s
     JOIN clients c ON c.id = s.client_id
     JOIN tariffs t ON t.id = s.tariff_id
-    """
-
-    if status_filter:
-        query += " WHERE s.status=?"
-        data = db.execute(query, (status_filter,)).fetchall()
-    else:
-        data = db.execute(query).fetchall()
+    """).fetchall()
 
     db.close()
     return render_template("subscriptions.html", subs=data)
@@ -171,7 +163,6 @@ def add_subscription():
         db.close()
         return redirect("/subscriptions")
 
-    # GET
     clients = db.execute("SELECT * FROM clients").fetchall()
     tariffs = db.execute("SELECT * FROM tariffs").fetchall()
     db.close()
@@ -188,31 +179,11 @@ def charge():
 
     for s in subs:
         price = db.execute("SELECT price FROM tariffs WHERE id=?", (s["tariff_id"],)).fetchone()[0]
-
         db.execute("UPDATE subscriptions SET balance = balance - ? WHERE id=?", (price, s["id"]))
 
     db.commit()
-
-    # проверка на долг
-    db.execute("""
-    UPDATE subscriptions
-    SET status='Отключена'
-    WHERE balance < ?
-    """, (DEBT_LIMIT,))
-
-    db.commit()
     db.close()
 
-    return redirect("/subscriptions")
-
-
-# включить вручную
-@app.route("/activate/<int:id>")
-def activate(id):
-    db = get_db()
-    db.execute("UPDATE subscriptions SET status='Активна' WHERE id=?", (id,))
-    db.commit()
-    db.close()
     return redirect("/subscriptions")
 
 
@@ -229,23 +200,29 @@ def payments():
     return render_template("payments.html", payments=data)
 
 
-@app.route("/add_payment", methods=["POST"])
+@app.route("/add_payment", methods=["GET", "POST"])
 def add_payment():
     db = get_db()
 
-    client_id = request.form["client_id"]
-    amount = int(request.form["amount"])
+    if request.method == "POST":
+        client_id = request.form["client_id"]
+        amount = int(request.form["amount"])
 
-    db.execute("INSERT INTO payments (client_id, amount, date) VALUES (?, ?, date('now'))",
-               (client_id, amount))
+        db.execute("INSERT INTO payments (client_id, amount, date) VALUES (?, ?, date('now'))",
+                   (client_id, amount))
 
-    db.execute("UPDATE subscriptions SET balance = balance + ? WHERE client_id=?",
-               (amount, client_id))
+        db.execute("UPDATE subscriptions SET balance = balance + ? WHERE client_id=?",
+                   (amount, client_id))
 
-    db.commit()
+        db.commit()
+        db.close()
+
+        return redirect("/payments")
+
+    clients = db.execute("SELECT * FROM clients").fetchall()
     db.close()
 
-    return redirect("/payments")
+    return render_template("add_payment.html", clients=clients)
 
 
 # ---------------- СТАТИСТИКА ----------------
