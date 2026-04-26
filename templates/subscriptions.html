@@ -1,33 +1,44 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Подключения</h2>
+<h2 class="mb-3">Подключения</h2>
 
-<a href="/add_subscription" class="btn btn-primary mb-3">Новое подключение</a>
+<a href="/add_subscription" class="btn btn-primary mb-3 btn-modern">+ Подключить</a>
 
+<div class="table-custom">
+<table class="table mb-0 text-light">
 
+<tr>
+    <th>ID</th>
+    <th>Клиент</th>
+    <th>Услуга</th>
+    <th>Дата</th>
+    <th>Статус</th>
+    <th></th>
+</tr>
 
-<table class="table table-dark table-hover">
-    <tr>
-        <th>ID</th>
-        <th>Клиент</th>
-        <th>Услуга</th>
-        <th>Дата</th>
-        <th>Статус</th>
-    </tr>
+{% for s in subs %}
+<tr>
+    <td>{{ s.id }}</td>
+    <td>{{ s.full_name }}</td>
+    <td>{{ s.name }}</td>
+    <td>{{ s.start_date }}</td>
 
-    {% for s in subs %}
-    <tr>
-        <td>{{ s.id }}</td>
-        <td>{{ s.full_name }}</td>
-        <td>{{ s.name }}</td>
-        <td>{{ s.start_date }}</td>
-        <td><span class="badge bg-success">{{ s.status }}</span></td>
-        <td>
-        <a href="/toggle_sub/{{ s.id }}" class="btn btn-warning btn-sm">Сменить статус</a>
-        </td>
-    </tr>
-    {% endfor %}
+    <td>
+        {% if s.status == "Активна" %}
+            <span class="status-active">Активна</span>
+        {% else %}
+            <span class="status-off">Отключена</span>
+        {% endif %}
+    </td>
+
+    <td>
+        <a href="/toggle_sub/{{ s.id }}" class="btn btn-warning btn-sm btn-modern">↻</a>
+    </td>
+</tr>
+{% endfor %}
+
 </table>
+</div>
 
 {% endblock %}
