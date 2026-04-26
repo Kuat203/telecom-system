@@ -142,6 +142,45 @@ def add_tariff():
 
     return render_template("add_tariff.html")
 
+@app.route("/delete_client/<int:id>")
+def delete_client(id):
+    db = get_db()
+
+    db.execute("DELETE FROM subscriptions WHERE client_id=?", (id,))
+    db.execute("DELETE FROM payments WHERE client_id=?", (id,))
+    db.execute("DELETE FROM clients WHERE id=?", (id,))
+
+    db.commit()
+    db.close()
+
+    return redirect("/clients")
+
+@app.route("/delete_tariff/<int:id>")
+def delete_tariff(id):
+    db = get_db()
+    db.execute("DELETE FROM tariffs WHERE id=?", (id,))
+    db.commit()
+    db.close()
+    return redirect("/tariffs")
+
+
+@app.route("/delete_subscription/<int:id>")
+def delete_subscription(id):
+    db = get_db()
+    db.execute("DELETE FROM subscriptions WHERE id=?", (id,))
+    db.commit()
+    db.close()
+    return redirect("/subscriptions")
+
+
+@app.route("/delete_payment/<int:id>")
+def delete_payment(id):
+    db = get_db()
+    db.execute("DELETE FROM payments WHERE id=?", (id,))
+    db.commit()
+    db.close()
+    return redirect("/payments")
+
 
 # ---------------- ПОДКЛЮЧЕНИЯ ----------------
 @app.route("/subscriptions")
