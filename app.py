@@ -169,6 +169,22 @@ def add_subscription():
 
     return render_template("add_subscription.html", clients=clients, tariffs=tariffs)
 
+@app.route("/activate/<int:id>")
+def activate(id):
+    db = get_db()
+    db.execute("UPDATE subscriptions SET status='Активна' WHERE id=?", (id,))
+    db.commit()
+    db.close()
+    return redirect("/subscriptions")
+
+@app.route("/deactivate/<int:id>")
+def deactivate(id):
+    db = get_db()
+    db.execute("UPDATE subscriptions SET status='Отключена' WHERE id=?", (id,))
+    db.commit()
+    db.close()
+    return redirect("/subscriptions")
+
 
 # начисление
 @app.route("/charge")
