@@ -1,38 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="mb-3">Клиенты</h2>
+<h2 class="mb-4">Клиенты</h2>
 
 <div class="d-flex justify-content-between mb-3">
-    <form method="get" class="d-flex w-50">
+    <form method="get" class="d-flex" style="width: 300px;">
         <input name="search" class="form-control me-2" placeholder="Поиск">
-        <button class="btn btn-primary btn-modern">Найти</button>
+        <button class="btn-pro">Найти</button>
     </form>
 
-    <a href="/add_client" class="btn btn-success btn-modern">+ Добавить</a>
+    <a href="/add_client" class="btn-pro">+ Добавить</a>
 </div>
 
-<div class="table-custom">
-<table class="table mb-0 text-light">
-    <tr>
-        <th>ID</th>
-        <th>Имя</th>
-        <th>Телефон</th>
-        <th></th>
-    </tr>
+<table class="table-pro">
+<tr>
+    <th>ID</th>
+    <th>Имя</th>
+    <th>Телефон</th>
+    <th></th>
+</tr>
 
-    {% for c in clients %}
-    <tr>
-        <td>{{ c.id }}</td>
-        <td>{{ c.full_name }}</td>
-        <td>{{ c.phone }}</td>
-        <td>
-            <a href="/edit_client/{{ c.id }}" class="btn btn-warning btn-sm btn-modern">✏️</a>
-            <a href="/delete_client/{{ c.id }}" class="btn btn-danger btn-sm btn-modern">🗑</a>
-        </td>
-    </tr>
-    {% endfor %}
+{% for c in clients %}
+<tr>
+    <td>{{ c.id }}</td>
+    <td>{{ c.full_name }}</td>
+    <td>{{ c.phone }}</td>
+    <td>
+        <a href="/edit_client/{{ c.id }}" class="btn-warning-pro btn-pro">✏</a>
+        <a href="/delete_client/{{ c.id }}" class="btn-danger-pro btn-pro">🗑</a>
+    </td>
+</tr>
+{% endfor %}
+
 </table>
-</div>
 
 {% endblock %}
