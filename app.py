@@ -278,6 +278,8 @@ def payments():
     return render_template("payments.html", payments=data)
 
 
+from datetime import datetime
+
 @app.route("/add_payment", methods=["GET", "POST"])
 def add_payment():
     db = get_db()
@@ -285,13 +287,16 @@ def add_payment():
     if request.method == "POST":
         client_id = request.form.get("client_id")
         amount = request.form.get("amount")
+        date = request.form.get("date")
 
         if not amount:
             return "Введите сумму"
 
-        amount = int(amount)
+        # 👉 ЕСЛИ ДАТЫ НЕТ — СТАВИМ СЕГОДНЯ
+        if not date:
+            date = datetime.now().strftime("%Y-%m-%d")
 
-        date = request.form.get("date")
+        amount = int(amount)
 
         db.execute(
             "INSERT INTO payments (client_id, amount, date) VALUES (?, ?, ?)",
