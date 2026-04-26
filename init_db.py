@@ -10,6 +10,15 @@ CREATE TABLE clients (
     phone TEXT
 )
 """)
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER,
+    amount INTEGER,
+    date TEXT
+)
+""")
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS subscriptions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
