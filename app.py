@@ -59,8 +59,7 @@ def init_db():
 
 
 # ❗ ВАЖНО: временно очищаем базу (один раз)
-if os.path.exists("database.db"):
-    os.remove("database.db")
+
 
 init_db()
 
