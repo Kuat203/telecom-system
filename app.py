@@ -107,6 +107,42 @@ def delete_service(id):
     conn.close()
     return redirect("/services")
 
+@app.route("/subscriptions")
+def subscriptions():
+    conn = get_db()
+    data = conn.execute("""
+    SELECT subscriptions.id, clients.full_name, services.name, start_date, status
+    FROM subscriptions
+    JOIN clients ON clients.id = subscriptions.client_id
+    JOIN services ON services.id = subscriptions.service_id
+    """).fetchall()
+    conn.close()
+    return render_template("subscriptions.html", subs=data)
+
+
+@app.route("/add_subscription", methods=["GET", "POST"])
+def add_subscription():
+    conn = get_db()
+
+    if request.method == "POST":
+        client_id = request.form["client_id"]
+        service_id = request.form["service_id"]
+        date = request.form["date"]
+
+        conn.execute(
+            "INSERT INTO subscriptions (client_id, service_id, start_date, status) VALUES (?, ?, ?, 'Активна')",
+            (client_id, service_id, date)
+        )
+        conn.commit()
+        conn.close()
+        return redirect("/subscriptions")
+
+    clients = conn.execute("SELECT * FROM clients").fetchall()
+    services = conn.execute("SELECT * FROM services").fetchall()
+    conn.close()
+
+    return render_template("add_subscription.html", clients=clients, services=services)
+
 # ---------- ЗАПУСК ----------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
