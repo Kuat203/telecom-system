@@ -129,6 +129,27 @@ def subscriptions():
     conn.close()
     return render_template("subscriptions.html", subs=data)
 
+@app.route("/edit_client/<int:id>", methods=["GET", "POST"])
+def edit_client(id):
+    conn = get_db()
+
+    if request.method == "POST":
+        name = request.form["name"]
+        phone = request.form["phone"]
+
+        conn.execute(
+            "UPDATE clients SET full_name=?, phone=? WHERE id=?",
+            (name, phone, id)
+        )
+        conn.commit()
+        conn.close()
+        return redirect("/clients")
+
+    client = conn.execute("SELECT * FROM clients WHERE id=?", (id,)).fetchone()
+    conn.close()
+
+    return render_template("edit_client.html", client=client)
+
 
 @app.route("/add_subscription", methods=["GET", "POST"])
 def add_subscription():
