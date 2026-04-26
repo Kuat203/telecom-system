@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
 import os
+if os.path.exists("database.db"):
+    os.remove("database.db")
+
 
 app = Flask(__name__)
 
