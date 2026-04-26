@@ -154,18 +154,29 @@ def subscriptions():
     return render_template("subscriptions.html", subs=data)
 
 
-@app.route("/add_subscription", methods=["POST"])
+@app.route("/add_subscription", methods=["GET", "POST"])
 def add_subscription():
     db = get_db()
 
-    db.execute("""
-    INSERT INTO subscriptions (client_id, tariff_id, start_date, status, balance)
-    VALUES (?, ?, date('now'), 'Активна', 0)
-    """, (request.form["client_id"], request.form["tariff_id"]))
+    if request.method == "POST":
+        db.execute("""
+        INSERT INTO subscriptions (client_id, tariff_id, start_date, status, balance)
+        VALUES (?, ?, date('now'), 'Активна', 0)
+        """, (
+            request.form["client_id"],
+            request.form["tariff_id"]
+        ))
 
-    db.commit()
+        db.commit()
+        db.close()
+        return redirect("/subscriptions")
+
+    # GET
+    clients = db.execute("SELECT * FROM clients").fetchall()
+    tariffs = db.execute("SELECT * FROM tariffs").fetchall()
     db.close()
-    return redirect("/subscriptions")
+
+    return render_template("add_subscription.html", clients=clients, tariffs=tariffs)
 
 
 # начисление
