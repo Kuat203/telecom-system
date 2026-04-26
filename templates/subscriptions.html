@@ -5,23 +5,35 @@
 
 <a href="/add_subscription" class="btn-pro mb-3">+ Подключить</a>
 
-<table class="table-pro">
+<div class="d-flex gap-2 mb-3">
+    <a href="/subscriptions" class="btn-pro">Все</a>
+    <a href="/subscriptions?status=Активна" class="btn-pro">Активные</a>
+    <a href="/subscriptions?status=Отключена" class="btn-pro">Отключённые</a>
 
+    <a href="/charge" class="btn-warning-pro btn-pro ms-auto">Начислить месяц</a>
+</div>
+
+<table class="table-pro">
 <tr>
-    <th>ID</th>
     <th>Клиент</th>
-    <th>Услуга</th>
-    <th>Дата</th>
+    <th>Тариф</th>
+    <th>Баланс</th>
     <th>Статус</th>
     <th></th>
 </tr>
 
 {% for s in subs %}
 <tr>
-    <td>{{ s.id }}</td>
     <td>{{ s.full_name }}</td>
     <td>{{ s.name }}</td>
-    <td>{{ s.start_date }}</td>
+
+    <td>
+        {% if s.balance < 0 %}
+            <span style="color:#ef4444">{{ s.balance }} ₸</span>
+        {% else %}
+            <span style="color:#22c55e">{{ s.balance }} ₸</span>
+        {% endif %}
+    </td>
 
     <td>
         {% if s.status == "Активна" %}
@@ -32,11 +44,12 @@
     </td>
 
     <td>
-        <a href="/toggle_sub/{{ s.id }}" class="btn-warning-pro btn-pro">↻</a>
+        {% if s.status == "Отключена" %}
+            <a href="/activate/{{ s.id }}" class="btn-pro">Включить</a>
+        {% endif %}
     </td>
 </tr>
 {% endfor %}
-
 </table>
 
 {% endblock %}
